@@ -178,38 +178,33 @@ function MovieDetails({ movie, onClose }) {
           </div>
         </div>
 
-        {/* Backdrop */}
-        <div className="w-full flex-grow mb-4">
-          <div
-            className="w-full h-0 pb-[56.25%] bg-cover bg-center rounded-lg relative"
-            style={{
-              backgroundImage: `url(${BASE_IMAGE_URL}${movie.backdrop_path})`,
-            }}
-          ></div>
-        </div>
+        {/* Backdrop and Trailer */}
+        {(movie.backdrop_path || trailerKey) && (
+          <div className="mb-4">
+            {movie.backdrop_path && (
+              <div className="w-full flex-grow mb-4">
+                <div
+                  className="w-full h-0 pb-[56.25%] bg-cover bg-center rounded-lg relative"
+                  style={{
+                    backgroundImage: `url(${BASE_IMAGE_URL}${movie.backdrop_path})`,
+                  }}
+                ></div>
+              </div>
+            )}
 
-        {/* Trailer */}
-        <div className="mb-4">
-          {trailerKey ? (
-            <iframe
-              width="100%"
-              height="500"
-              src={`https://www.youtube.com/embed/${trailerKey}`}
-              title={`${movie.title} Trailer`}
-              frameBorder="0"
-              allowFullScreen
-              className="rounded-lg"
-            ></iframe>
-          ) : movie.backdrop_path ? (
-            <img
-              src={`${BASE_IMAGE_URL}${movie.backdrop_path}`}
-              alt={`${movie.title} Backdrop`}
-              className="w-full md:w-2/3 rounded-lg"
-            />
-          ) : (
-            <div></div>
-          )}
-        </div>
+            {trailerKey && (
+              <iframe
+                width="100%"
+                height="500"
+                src={`https://www.youtube.com/embed/${trailerKey}`}
+                title={`${movie.title} Trailer`}
+                frameBorder="0"
+                allowFullScreen
+                className="rounded-lg"
+              ></iframe>
+            )}
+          </div>
+        )}
 
         {/* Close Button */}
         <button

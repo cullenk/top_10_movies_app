@@ -25,7 +25,7 @@ function MovieCard({ index }) {
 
   return (
     <>
-      <div className="h-[450px] p-4 rounded-lg border-2 border-solid border-white text-white bg-gray-800 cursor-pointer hover:bg-gray-700 hover:scale-[1.02] transition-all duration-300 flex flex-col">
+      <div className="min-h-[450px] p-4 rounded-lg border-2 border-solid border-white text-white bg-gray-800 cursor-pointer hover:bg-gray-700 hover:scale-[1.02] transition-all duration-300 flex flex-col">
         {movie ? (
           <div
             className="relative flex flex-col h-full"
@@ -50,13 +50,13 @@ function MovieCard({ index }) {
             </div>
           </div>
         ) : (
-          <div className="flex items-center justify-center h-full">
+          <div className="flex items-center justify-center h-100">
             {isSearching ? (
               <Search onSelectMovie={handleSelectMovie} />
             ) : (
               <button
                 onClick={() => setIsSearching(true)}
-                className="w-full h-full text-4xl cursor-pointer flex items-center justify-center"
+                className="w-full h-100 text-4xl cursor-pointer flex items-center justify-center"
               >
                 +
               </button>
