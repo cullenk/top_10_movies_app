@@ -55,7 +55,7 @@ function MovieDetails({ movie, onClose }) {
   const BASE_IMAGE_URL = "https://image.tmdb.org/t/p/w500";
 
   return (
-    <div className="fixed inset-0 bg-gray-950/90 flex items-center justify-center z-50">
+    <div onClick={onClose} className="fixed inset-0 bg-gray-950/90 flex items-center justify-center z-50">
       <div
         className="bg-gray-800 p-6 rounded-lg max-w-4xl w-full mx-4 flex flex-col overflow-y-auto"
         style={{ maxHeight: "90vh" }}

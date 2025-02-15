@@ -39,9 +39,9 @@
     @apply min-h-screen relative bg-primary;
   }
 
-  header {
+  /* header {
     @apply sm:mt-10 mt-5;
-  }
+  } */
 
   header img {
     @apply w-full max-w-lg h-auto object-contain mx-auto drop-shadow-md;

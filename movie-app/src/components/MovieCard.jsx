@@ -1,20 +1,35 @@
 import React, { useState } from "react";
 import Search from "./Search";
 import MovieDetails from "./MovieDetails";
+import { addMovie, removeMovie } from '../apiService';
 
-function MovieCard({ index }) {
-  const [movie, setMovie] = useState(null);
+function MovieCard({ index, movie: initialMovie, onUpdate }) {
+  const [movie, setMovie] = useState(initialMovie);
   const [isSearching, setIsSearching] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
 
-  const handleSelectMovie = (selectedMovie) => {
-    setMovie(selectedMovie);
-    setIsSearching(false);
+  const handleSelectMovie = async (selectedMovie) => {
+    try {
+      await addMovie(selectedMovie);
+      setMovie(selectedMovie);
+      setIsSearching(false);
+      onUpdate(); // Trigger update in parent component
+    } catch (error) {
+      console.error('Error adding movie:', error);
+      // Handle error (e.g., show error message to user)
+    }
   };
 
-  const handleRemoveMovie = (e) => {
+  const handleRemoveMovie = async (e) => {
     e.stopPropagation();
-    setMovie(null);
+    try {
+      await removeMovie(movie.id);
+      setMovie(null);
+      onUpdate(); // Trigger update in parent component
+    } catch (error) {
+      console.error('Error removing movie:', error);
+      // Handle error (e.g., show error message to user)
+    }
   };
 
   const openMovieDetails = () => {
@@ -25,7 +40,7 @@ function MovieCard({ index }) {
 
   return (
     <>
-      <div className="min-h-[450px] p-4 rounded-lg border-2 border-solid border-white text-white bg-gray-800 cursor-pointer hover:bg-gray-700 hover:scale-[1.02] transition-all duration-300 flex flex-col">
+      <div className="h-full min-h-[300px] p-4 rounded-lg border-2 border-solid border-white text-white bg-gray-800 cursor-pointer hover:bg-gray-700 hover:scale-[1.02] transition-all duration-300 flex flex-col">
         {movie ? (
           <div
             className="relative flex flex-col h-full"
@@ -44,7 +59,7 @@ function MovieCard({ index }) {
             </p>
             <div
               onClick={handleRemoveMovie}
-              className="absolute bottom-2 right-2 text-white cursor-pointer hover:text-red-500"
+              className="absolute bottom-2 right-2 cursor-pointer hover:rotate-6 hover:opacity-80"
             >
               🗑️
             </div>
