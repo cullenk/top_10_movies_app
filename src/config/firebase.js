@@ -3,14 +3,14 @@ import { getAuth, GoogleAuthProvider } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
+  apiKey: "AIzaSyAP7l8dLrbVoxPWN2QUFBoI_Y-ILzP48e8",
+  authDomain: "top-10-movies-app.firebaseapp.com",
+  databaseURL: "https://top-10-movies-app-default-rtdb.firebaseio.com",
+  projectId: "top-10-movies-app",
+  storageBucket: "top-10-movies-app.appspot.com",
+  messagingSenderId: "865010208389",
+  appId: "1:865010208389:web:0b8545dd7b9e1ffd1063ec",
+  measurementId: "G-HR9GS8P3BF"
 };
 
 const app = initializeApp(firebaseConfig);
