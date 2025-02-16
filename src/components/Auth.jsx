@@ -68,10 +68,11 @@ function Auth() {
   
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="px-8 py-6 mt-4 text-left bg-white shadow-lg">
+    <div className="flex flex-col items-center justify-center min-h-screen pattern">
+      <h2 className="text-gradient text-4xl mb-10">Create Your Own Top 10 Movies List!</h2>
+      <div className="px-8 py-6 mt-4 text-left bg-white shadow-lg rounded-md">
         <h3 className="text-2xl font-bold text-center">
-          {isLogin ? "Login From Dev" : "Sign Up"}
+          {isLogin ? "Login" : "Sign Up"}
         </h3>
         <form onSubmit={handleAuth}>
           <div className="mt-4">
@@ -99,20 +100,24 @@ function Auth() {
                 required
               />
             </div>
-            <div className="flex items-baseline justify-between mt-4">
+            <div className="flex flex-col items-baseline justify-center mt-4">
               <button
                 type="submit"
-                className="px-6 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-900"
+                className="w-full cursor-pointer px-6 mb-2 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-900"
               >
                 {isLogin ? "Login" : "Sign Up"}
               </button>
+              <div className="w-full">
               <button 
                 type="button" 
                 onClick={signInWithGoogle}
-                className="px-6 py-2 text-white bg-red-600 rounded-lg hover:bg-red-900"
+                className="w-full cursor-pointer mb-2 px-6 py-2 text-dark rounded-lg bg-blue-50 hover:bg-blue-200"
               >
+                <img className="mx-auto" src="./google-icon.png" alt="google-icon"></img>
                 Sign In With Google
               </button>
+              </div>
+             
             </div>
           </div>
         </form>

@@ -47,7 +47,7 @@ const App = () => {
       const userDocSnap = await getDoc(userDocRef);
   
       if (userDocSnap.exists()) {
-        console.log("User document found");
+        // console.log("User document found");
         const userData = userDocSnap.data();
         const userMovies = userData.topMovieList || [];
   
@@ -63,14 +63,15 @@ const App = () => {
         });
   
         if (userMovies.length > 0) {
-          toast.success('Populating movies from database');
+          console.log('Received movies from database')
+          // toast.success('Populating movies from database');
         } else {
           toast.info('No movies found in the database');
         }
       } else {
         console.log("User document not found, creating new profile");
         await setDoc(userDocRef, { topMovieList: [] });
-        toast.info('New user profile created');
+        // toast.info('New user profile created');
       }
     } catch (error) {
       console.error("Error fetching movies:", error);
@@ -80,7 +81,7 @@ const App = () => {
 
   const addMovie = async (movieData, slot) => {
     try {
-      console.log("Adding movie for user:", user.uid);
+      // console.log("Adding movie for user:", user.uid);
       const userDocRef = doc(db, "users", user.uid);
       const userDocSnap = await getDoc(userDocRef);
       
@@ -89,13 +90,13 @@ const App = () => {
         await setDoc(userDocRef, { topMovieList: [] });
       }
       
-      console.log("Updating document with new movie:", movieData);
+      // console.log("Updating document with new movie:", movieData);
       await updateDoc(userDocRef, {
         topMovieList: arrayUnion({ ...movieData, slot })
       });
       
       await fetchMovies();
-      toast.success('Movie added successfully');
+      // toast.success('Movie added successfully');
     } catch (error) {
       console.error("Error adding movie:", error);
       toast.error('Error adding movie');
@@ -128,7 +129,7 @@ const App = () => {
       await signOut(auth);
       setUser(null);
       setMovies(Array(10).fill(null));
-      toast.success('Logged out successfully');
+      // toast.success('Logged out successfully');
     } catch (err) {
       console.error(err);
       toast.error('Error logging out');
@@ -141,9 +142,12 @@ const App = () => {
         <main>
           <div className="pattern" />
           <div className="wrapper">
-            <div>
+            <div className="flex justify-between w-full">
+              <div>
+              <p className="text-white m-0">Welcome, {user.email}</p>
               <CurrentDate />
-              <button onClick={logout}>Logout</button>
+              </div>
+              <button onClick={logout} class="cursor-pointer px-6 mb-2 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-900">Logout</button>
             </div>
 
             <header>

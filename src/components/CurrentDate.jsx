@@ -19,7 +19,7 @@ useEffect(() => {
 }, []);
 
   return (
-    <p className="text-white mt-4 text-left">{currentDate}</p>
+    <p className="text-slate-50/45">{currentDate}</p>
   );
 }
 
