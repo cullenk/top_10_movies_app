@@ -1,34 +1,26 @@
 import React, { useState } from "react";
 import Search from "./Search";
 import MovieDetails from "./MovieDetails";
-import { addMovie, removeMovie } from '../apiService';
 
-function MovieCard({ index, movie: initialMovie, onUpdate }) {
-  const [movie, setMovie] = useState(initialMovie);
+function MovieCard({ index, movie, onAddMovie, onRemoveMovie }) {
   const [isSearching, setIsSearching] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
 
   const handleSelectMovie = async (selectedMovie) => {
     try {
-      await addMovie(selectedMovie);
-      setMovie(selectedMovie);
+      await onAddMovie(selectedMovie);
       setIsSearching(false);
-      onUpdate(); // Trigger update in parent component
     } catch (error) {
       console.error('Error adding movie:', error);
-      // Handle error (e.g., show error message to user)
     }
   };
 
   const handleRemoveMovie = async (e) => {
     e.stopPropagation();
     try {
-      await removeMovie(movie.id);
-      setMovie(null);
-      onUpdate(); // Trigger update in parent component
+      await onRemoveMovie();
     } catch (error) {
       console.error('Error removing movie:', error);
-      // Handle error (e.g., show error message to user)
     }
   };
 
