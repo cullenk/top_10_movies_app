@@ -1,31 +1,41 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
+import { useSelector, useDispatch } from 'react-redux';
+import { setUser, clearUser } from './store/userSlice';
+import { setMovies } from './store/moviesSlice';
 import Auth from "./components/Auth";
-import CurrentDate from "./components/CurrentDate";
-import MovieCard from "./components/MovieCard";
+import HeaderBar from "./components/HeaderBar";
+import MainMovieList from "./components/MainMovieList";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "./config/firebase";
-import { collection, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
-import { signOut } from "firebase/auth";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
+
 const App = () => {
-  const [user, setUser] = useState(null);
-  const [movies, setMovies] = useState(Array(10).fill(null));
+  const dispatch = useDispatch();
+  const user = useSelector(state => state.user);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        console.log("User authenticated:", user.uid);
-        setUser(user);
+        // console.log("User authenticated:", user.uid);
+        dispatch(setUser({
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+        }));
       } else {
         console.log("No user authenticated");
-        setUser(null);
-        setMovies(Array(10).fill(null));
+        dispatch(clearUser());
+        dispatch(setMovies(Array(10).fill(null)));
       }
     });
     return () => unsubscribe();
-  }, []);
+  }, [dispatch]);
+  
   
   useEffect(() => {
     if (user) {
@@ -33,8 +43,18 @@ const App = () => {
     }
   }, [user]);  
 
+  const fetchMovieDetails = async (movieId) => {
+    try {
+      const response = await fetch(`https://api.themoviedb.org/3/movie/${movieId}?api_key=${API_KEY}&language=en-US`);
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error fetching movie details:", error);
+      return null;
+    }
+  };
+
   const fetchMovies = async () => {
-    
     try {
       if (!user) {
         console.log("Attempting to fetch movies without user");
@@ -42,97 +62,39 @@ const App = () => {
         return;
       }
   
-      console.log("Fetching movies for user:", user.uid);
+      // console.log("Fetching movies for user:", user.uid);
       const userDocRef = doc(db, "users", user.uid);
       const userDocSnap = await getDoc(userDocRef);
   
       if (userDocSnap.exists()) {
-        // console.log("User document found");
         const userData = userDocSnap.data();
-        const userMovies = userData.topMovieList || [];
+        const userMovies = userData.topMovieList || {};
   
         console.log("User movies:", userMovies);
-        setMovies((prevMovies) => {
-          const newMovies = Array(10).fill(null);
-          userMovies.forEach((movie) => {
-            if (movie.slot >= 1 && movie.slot <= 10) {
-              newMovies[movie.slot - 1] = movie;
+        const newMovies = Array(10).fill(null);
+        for (let i = 0; i < 10; i++) {
+          const movieId = userMovies[i];
+          if (movieId) {
+            const movieDetails = await fetchMovieDetails(movieId);
+            if (movieDetails) {
+              newMovies[i] = movieDetails;
             }
-          });
-          return newMovies;
-        });
+          }
+        }
+        dispatch(setMovies(newMovies));
   
-        if (userMovies.length > 0) {
-          console.log('Received movies from database')
-          // toast.success('Populating movies from database');
+        if (Object.keys(userMovies).length > 0) {
+          // console.log('Received movies from database');
         } else {
-          toast.info('No movies found in the database');
+          toast.info('You have no saved movies yet!');
         }
       } else {
         console.log("User document not found, creating new profile");
-        await setDoc(userDocRef, { topMovieList: [] });
-        // toast.info('New user profile created');
+        await setDoc(userDocRef, { topMovieList: {} });
       }
     } catch (error) {
       console.error("Error fetching movies:", error);
       toast.error('Error fetching movies');
-    }
-  };
-
-  const addMovie = async (movieData, slot) => {
-    try {
-      // console.log("Adding movie for user:", user.uid);
-      const userDocRef = doc(db, "users", user.uid);
-      const userDocSnap = await getDoc(userDocRef);
-      
-      if (!userDocSnap.exists()) {
-        console.log("User document not found, creating new one");
-        await setDoc(userDocRef, { topMovieList: [] });
-      }
-      
-      // console.log("Updating document with new movie:", movieData);
-      await updateDoc(userDocRef, {
-        topMovieList: arrayUnion({ ...movieData, slot })
-      });
-      
-      await fetchMovies();
-      // toast.success('Movie added successfully');
-    } catch (error) {
-      console.error("Error adding movie:", error);
-      toast.error('Error adding movie');
-    }
-  };
-  
-
-  const removeMovie = async (slot) => {
-    try {
-      const userDocRef = doc(db, "users", user.uid);
-      const userDocSnap = await getDoc(userDocRef);
-      const userData = userDocSnap.data();
-      const movieToRemove = userData.topMovieList.find(movie => movie.slot === slot);
-      
-      if (movieToRemove) {
-        await updateDoc(userDocRef, {
-          topMovieList: arrayRemove(movieToRemove)
-        });
-        await fetchMovies();
-        toast.success('Movie removed successfully');
-      }
-    } catch (error) {
-      console.error("Error removing movie:", error);
-      toast.error('Error removing movie');
-    }
-  };
-
-  const logout = async () => {
-    try {
-      await signOut(auth);
-      setUser(null);
-      setMovies(Array(10).fill(null));
-      // toast.success('Logged out successfully');
-    } catch (err) {
-      console.error(err);
-      toast.error('Error logging out');
     }
   };
 
@@ -142,35 +104,14 @@ const App = () => {
         <main>
           <div className="pattern" />
           <div className="wrapper">
-            <div className="flex justify-between w-full">
-              <div>
-              <p className="text-white m-0">Welcome, {user.email}</p>
-              <CurrentDate />
-              </div>
-              <button onClick={logout} class="cursor-pointer px-6 mb-2 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-900">Logout</button>
-            </div>
-
+            <HeaderBar />
             <header>
               <img src="./hero.png" alt="Hero Banner" />
               <h1 className="mb-20">
                 My <span className="text-gradient">Top 10 </span>Favorite Movies
               </h1>
             </header>
-            <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-10 justify-items-stretch">
-              {movies.map((movie, index) => (
-                <div key={index} className="relative h-full">
-                  <h2 className="z-10 text-7xl text-gradient absolute -top-10 -left-5 -rotate-8 shadow-2xl">
-                    {index + 1}
-                  </h2>
-                  <MovieCard
-                    index={index}
-                    movie={movie}
-                    onAddMovie={(movieData) => addMovie(movieData, index + 1)}
-                    onRemoveMovie={() => removeMovie(index + 1)}
-                  />
-                </div>
-              ))}
-            </section>
+            <MainMovieList />
           </div>
           <ToastContainer />
         </main>

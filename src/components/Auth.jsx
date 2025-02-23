@@ -1,4 +1,8 @@
 import React, { useState, useEffect } from "react";
+import { useDispatch } from 'react-redux';
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { setUser } from '../store/userSlice';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -6,22 +10,31 @@ import {
   onAuthStateChanged
 } from "firebase/auth";
 import { auth, googleProvider, db } from "../config/firebase";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
 
 function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLogin, setIsLogin] = useState(true);
-  const [user, setUser] = useState(null);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      console.log("Current user:", currentUser?.email);
+      if (currentUser) {
+        dispatch(setUser({
+          uid: currentUser.uid,
+          email: currentUser.email,
+          displayName: currentUser.displayName,
+          photoURL: currentUser.photoURL,
+        }));
+        // console.log("Current user:", currentUser.email);
+      } else {
+        dispatch(setUser(null));
+      }
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [dispatch]);
 
   const handleAuth = async (e) => {
     e.preventDefault();
@@ -35,7 +48,11 @@ function Auth() {
       await createUserDocument(userCredential.user);
     } catch (err) {
       console.error(err);
-      alert(err.message);
+      if (err.code === 'auth/email-already-in-use') {
+        toast.error('Email already in use. Please use a different email or sign in.');
+      } else {
+        toast.error(err.message);
+      }
     }
   };
 
@@ -45,10 +62,10 @@ function Auth() {
       await createUserDocument(result.user);
     } catch (err) {
       console.error(err);
-      alert(err.message);
+      toast.error(err.message);
     }
   };
-
+  
   const createUserDocument = async (user) => {
     if (!user) return;
   
@@ -56,21 +73,30 @@ function Auth() {
     try {
       const docSnap = await getDoc(userRef);
       if (!docSnap.exists()) {
-        await setDoc(userRef, { email: user.email, topMovieList: [] });
+        await setDoc(userRef, { 
+          email: user.email, 
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+          topMovieList: {} 
+        });
+        // console.log("User document created");
       } else {
-        await updateDoc(userRef, { email: user.email });
+        await updateDoc(userRef, { 
+          email: user.email,
+          displayName: user.displayName,
+          photoURL: user.photoURL
+        });
+        // console.log("User document updated");
       }
-      console.log("User document created/updated");
     } catch (error) {
-      console.error("Error creating user document:", error);
+      console.error("Error creating/updating user document:", error);
     }
   };
-  
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen pattern">
-      <h2 className="text-gradient text-4xl mb-10">Create Your Own Top 10 Movies List!</h2>
-      <div className="px-8 py-6 mt-4 text-left bg-white shadow-lg rounded-md">
+    <div className="flex flex-col items-center justify-center min-h-screen pattern p-6">
+      <h2 className="text-gradient text-center text-4xl mb-10">Create Your Own Top 10 Movies List!</h2>
+      <div className="px-8 py-6 mt-4 text-left bg-white shadow-lg rounded-md min-w-sm">
         <h3 className="text-2xl font-bold text-center">
           {isLogin ? "Login" : "Sign Up"}
         </h3>
@@ -130,6 +156,7 @@ function Auth() {
           </button>
         </div>
       </div>
+      <ToastContainer />
     </div>
   );
 }

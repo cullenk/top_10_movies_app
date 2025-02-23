@@ -1,15 +1,29 @@
 import React, { useState } from "react";
+import { useDispatch, useSelector } from 'react-redux';
+import { doc, updateDoc, arrayUnion } from "firebase/firestore";
+import { db } from "../config/firebase";
+import { addMovie, removeMovie } from '../store/moviesSlice';
 import Search from "./Search";
 import MovieDetails from "./MovieDetails";
 
-function MovieCard({ index, movie, onAddMovie, onRemoveMovie }) {
+function MovieCard({ index, movie, onRemoveMovie }) {
+  const user = useSelector(state => state.user);
+  const dispatch = useDispatch();
   const [isSearching, setIsSearching] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
 
   const handleSelectMovie = async (selectedMovie) => {
     try {
-      await onAddMovie(selectedMovie);
+      dispatch(addMovie({ movie: selectedMovie, slot: index + 1 }));
       setIsSearching(false);
+
+      // Update the database
+      if (user && user.uid) {
+        const userDocRef = doc(db, "users", user.uid);
+        await updateDoc(userDocRef, {
+          [`topMovieList.${index}`]: selectedMovie.id
+        });
+      }
     } catch (error) {
       console.error('Error adding movie:', error);
     }
@@ -18,7 +32,7 @@ function MovieCard({ index, movie, onAddMovie, onRemoveMovie }) {
   const handleRemoveMovie = async (e) => {
     e.stopPropagation();
     try {
-      await onRemoveMovie();
+      onRemoveMovie(index + 1);
     } catch (error) {
       console.error('Error removing movie:', error);
     }
@@ -72,8 +86,8 @@ function MovieCard({ index, movie, onAddMovie, onRemoveMovie }) {
         )}
       </div>
       {showDetails && (
-        <MovieDetails movie={movie} onClose={() => setShowDetails(false)} />
-      )}
+  <MovieDetails movieId={movie?.id} onClose={() => setShowDetails(false)} />
+)}
     </>
   );
 }

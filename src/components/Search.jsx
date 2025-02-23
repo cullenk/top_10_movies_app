@@ -1,43 +1,18 @@
 import React, { useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
+import { useSearchMoviesQuery } from '../store/moviesApiSlice';
 import useDebounce from '../custom-hooks/useDebounce';
-
-const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 
 function Search({ onSelectMovie }) {
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const dispatch = useDispatch();
 
   // Debounced query value
   const debouncedQuery = useDebounce(query, 500); // Wait for 500ms after typing stops
 
-  // Fetch movies when the debounced query changes
-  useEffect(() => {
-    const fetchMovies = async () => {
-      if (debouncedQuery) {
-        setIsLoading(true);
-        setError(null);
-        try {
-          const response = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&language=en-US&query=${debouncedQuery}&page=1&include_adult=false`);
-          if (!response.ok) {
-            throw new Error('Failed to fetch movies');
-          }
-          const data = await response.json();
-          setResults(data.results);
-        } catch (err) {
-          setError('An error occurred while fetching movies. Please try again.');
-          console.error('Error fetching movies:', err);
-        } finally {
-          setIsLoading(false);
-        }
-      } else {
-        setResults([]); // Clear results if query is empty
-      }
-    };
-
-    fetchMovies();
-  }, [debouncedQuery]);
+  const { data: results, isLoading, error } = useSearchMoviesQuery(debouncedQuery, {
+    skip: !debouncedQuery,
+  });
 
   const handleSelectMovie = (movie) => {
     onSelectMovie({
@@ -60,8 +35,8 @@ function Search({ onSelectMovie }) {
         placeholder="Search for a movie"
       />
       {isLoading && <p className="text-white">Loading...</p>}
-      {error && <p className="text-red-500">{error}</p>}
-      {results.length > 0 && (
+      {error && <p className="text-red-500">An error occurred while fetching movies. Please try again.</p>}
+      {results && results.length > 0 && (
         <ul className="mt-2 max-h-40 overflow-y-auto bg-gray-800 rounded">
           {results.map(movie => (
             <li
